@@ -6,6 +6,44 @@ local twsv = game:GetService('TweenService')
 local servstor = game:GetService('ServerStorage')
 local repl  = game:GetService('ReplicatedStorage')
 
+-- assigns modules to variables
+local datamod = require(script.Parent.Data)
+local mbagdemod = require(script.Parent.Badges)
+local charmod = {}
+
+-- fired when any character is loaded in
+charmod.loadCharacter = function(plr, char)
+	local hum = char:WaitForChild('Humanoid')
+	hum.Died:Connect(function() datamod.increment(plr, 'Fails', 1) end)
+	local root = char:WaitForChild('HumanoidRootPart') -- gets the humanoid and humanoidrootpart of the character
+	
+	local canwin = Instance.new('BoolValue') 
+	canwin.Name = 'CanWin'
+	canwin.Value = true
+	canwin.Parent = char
+end
+
+charmod.loadPlayer = function(plr) -- fires whenever a player joins the game
+	plr.CharacterAdded:Connect(function(char)
+		charmod.loadCharacter(plr, char)
+	end)
+	
+	mbagdemod.giveBadge(plr, 'Welcome') -- attempts to give the player the 'Welcome' badge
+end
+
+game.Players.PlayerAdded:Connect(function(plr)
+	charmod.loadPlayer(plr)
+end)
+
+-- adds 6 seconds (0.1 minutes) to the playtime of every player in the game
+while true do
+	task.wait(6)
+	
+	for _, plr in pairs(game.Players:GetPlayers()) do
+		datamod.increment(plr, 'PlayTime', 0.1)
+	end
+end
+
 -- determines length of the play area
 local SLIDE_LENGTH = 8
 
